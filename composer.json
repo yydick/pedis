@@ -10,14 +10,16 @@
         }
     ],
     "require": {
-        "php": ">=7.1.0"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "@stable"
+        "php": ">=7.1.0",
+        "phpunit/phpunit": "@stable",
+        "yydick/peas-log": "dev-master",
+        "yydick/config": "dev-master",
+        "yydick/exception": "dev-master"
     },
     "autoload": {
         "psr-4": {
-            "Spool\\Pedis\\": "src/"
+            "Spool\\Pedis\\": "src/",
+            "Spool\\Pedis\\Tests\\": "tests/"
         },
         "files":["src/BaseInit.php"]
     }

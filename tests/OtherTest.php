@@ -10,6 +10,9 @@ namespace Spool\Pedis\Tests;
 
 use PHPUnit\Framework\TestCase;
 use Spool\Pedis\Lib\Log;
+use Spool\Config\Env;
+use stdClass;
+
 /**
  * Description of OtherTest
  *
@@ -27,7 +30,7 @@ class OtherTest extends TestCase
         echo "rootPath: ", PEDIS_ROOT, "\n";
         $this->assertTrue(true);
     }
-    
+
     public function testLogInfo()
     {
         Log::test();
@@ -35,10 +38,26 @@ class OtherTest extends TestCase
     }
     public function testMd5()
     {
-	$key = [];
-	for($i = 1; $i < 65537; $i++){
-	    $key[md5($i)] = 1;
-	}
-	var_dump($i, count($key));
+        $key = [];
+        for ($i = 1; $i < 65537; $i++) {
+            $key[md5($i)] = 1;
+        }
+        var_dump($i, count($key));
+    }
+    public function testEnv()
+    {
+        $env = Env::getInstance();
+        $env->setRootDir(dirname(__DIR__));
+        var_dump('env: ', $env->getRootDir(), $env('APP_ENV'), $env('MAX'));
+    }
+    public function testStdClass()
+    {
+        $std = new \Spool\Config\Data();
+        $std->a = '1';
+        var_dump($std);
+        unset($std->a);
+        var_dump($std);
+        $ss = json_decode('{"a":1}');
+        var_dump($ss, json_encode($ss));
     }
 }

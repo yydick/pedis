@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 /* 
  * To change this license header, choose License Headers in Project Properties.
@@ -7,12 +8,13 @@ declare(strict_types=1);
  */
 
 namespace Spool\Pedis;
+
 use Spool\Pedis\Lib\Config;
 use Spool\Pedis\Lib\BootStrap;
 
 class Main
 {
-    private $config;
+    protected $config;
     public function __construct(string $configFile = '')
     {
         $this->config = $configFile ? new Config($configFile) : new Config();

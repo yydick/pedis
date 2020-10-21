@@ -17,6 +17,8 @@
 
 namespace Spool\Pedis;
 
+use Spool\Config\Config;
+
 /**
  * 服务入口类,检测环境,初始化
  * 
@@ -33,5 +35,37 @@ namespace Spool\Pedis;
  */
 class Server
 {
-    protected static $config;
+    const VERSION = '0.0.1';
+    protected $config;
+    protected $basePath;
+    /**
+     * 构造函数
+     * 
+     * 
+     * @param string $basePth 初始化服务
+     */
+    public function __construct(string $basePath = '')
+    {
+        if ($basePath) {
+            $this->basePath = rtrim($basePath, '\/');
+        }
+    }
+    /**
+     * 返回版本号
+     * 
+     * @return string
+     */
+    public function version(): string
+    {
+        return static::VERSION;
+    }
+    /**
+     * 监测运行环境
+     * 
+     * @return boolean
+     */
+    public function checkEvent(): bool
+    {
+        return false;
+    }
 }

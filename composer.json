@@ -2,7 +2,7 @@
     "name": "spool/pedis",
     "description": "Redis based on PHP source development",
     "type": "project",
-    "license": "php",
+    "license": "apache-2.0",
     "authors": [
         {
             "name": "Haobo Chen",

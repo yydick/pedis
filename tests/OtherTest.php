@@ -59,5 +59,6 @@ class OtherTest extends TestCase
         var_dump($std);
         $ss = json_decode('{"a":1}');
         var_dump($ss, json_encode($ss));
+        $server = new \Spool\Pedis\Server();
     }
 }

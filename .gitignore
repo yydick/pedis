@@ -2,3 +2,6 @@
 vendor
 .composer.lock
 /composer.lock
+/.env
+/.env*
+/*.cache

@@ -6,7 +6,7 @@
  * and open the template in the editor.
  */
 
-namespace Spool\Pedis\Constants;
+namespace Spool\Pedis\App\Constants;
 
 /**
  * Pedis报错信息,1000+启动错误
@@ -21,7 +21,7 @@ namespace Spool\Pedis\Constants;
  */
 class ErrorCode extends AbstractConstants
 {
-    
+
     /**
      * @Message('设置GID失败')
      */
@@ -105,6 +105,5 @@ class ErrorCode extends AbstractConstants
     /**
      * @Message('命令没找到')
      */
-    const COMMAND_NOT_FOUND= 5002;
-    
+    const COMMAND_NOT_FOUND = 5002;
 }

@@ -143,14 +143,14 @@ class Config
      * 是否开启末尾检测,默认
      * @var bool
      */
-    public $openEofSplit	     = true;
+    public $openEofSplit            = true;
     /**
      * 目前只支持\r\n,不支持别的
      */
-//    public $packageEof = "\r\n";
-    
+    //    public $packageEof = "\r\n";
+
     public $packageMaxLength = 1024 * 1024 * 2;
-    
+
     public $openLengthCheck = false;
     public $packageLengthType = 'N';
     public $packageLengthOffset = 0;
@@ -167,11 +167,10 @@ class Config
         } elseif (is_array($config)) {
             $readyConfig = $config;
         } elseif (!$config) {
-            
         } else {
             throw new PedisException(ErrorCode::CONFIG_NOT_STRING_OR_ARRAY);
         }
-//        var_dump($readyConfig);exit;
+        //        var_dump($readyConfig);exit;
         $this->host                    = $readyConfig["NETWORK"]['host'] ?? $this->host;
         $this->port                    = $readyConfig["NETWORK"]['port'] ?? $this->port;
         $this->timeout                 = $readyConfig["NETWORK"]['timeout'] ?? $this->timeout;
@@ -193,5 +192,4 @@ class Config
         $this->maxmemory               = $readyConfig['MEMORY MANAGEMENT']['maxmemory'] ?? $this->maxmemory;
         $this->maxmemoryPolicy         = $readyConfig['MEMORY MANAGEMENT']['maxmemoryPolicy'] ?? $this->maxmemoryPolicy;
     }
-
 }

@@ -18,9 +18,14 @@
     },
     "autoload": {
         "psr-4": {
-            "Spool\\Pedis\\": "src/",
-            "Spool\\Pedis\\Tests\\": "tests/"
+            "Spool\\Pedis\\": "libs/",
+            "Spool\\Pedis\\Tests\\": "tests/",
+            "Spool\\Pedis\\App\\": "app/",
+            "Spool\\Pedis\\Routes\\": "routes/"
         },
-        "files":["src/BaseInit.php"]
+        "files":[
+            "libs/BaseInit.php",
+            "libs/helpers.php"
+        ]
     }
 }

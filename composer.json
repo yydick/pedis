@@ -19,9 +19,9 @@
     "autoload": {
         "psr-4": {
             "Spool\\Pedis\\": "libs/",
-            "Spool\\Pedis\\Tests\\": "tests/",
-            "Spool\\Pedis\\App\\": "app/",
-            "Spool\\Pedis\\Routes\\": "routes/"
+            "Tests\\": "tests/",
+            "App\\": "app/",
+            "Routes\\": "routes/"
         },
         "files":[
             "libs/BaseInit.php",

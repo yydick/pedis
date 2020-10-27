@@ -7,7 +7,7 @@ declare(strict_types=1);
  * and open the template in the editor.
  */
 
-namespace Spool\Pedis\Lib;
+namespace Spool\Pedis\Lib\bak;
 
 use Spool\Pedis\Exceptions\PedisLogException;
 use Spool\Pedis\Constants\ErrorCode;

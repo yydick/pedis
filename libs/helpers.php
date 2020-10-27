@@ -3,6 +3,7 @@
 use Spool\Config\Env;
 use Spool\Config\Config;
 
+defined('DS') || define('DS', DIRECTORY_SEPARATOR);
 if (!function_exists('env')) {
     /**
      * Gets the value of an environment variable.
@@ -12,7 +13,7 @@ if (!function_exists('env')) {
      * 
      * @return mixed
      */
-    function env($key, $default = null)
+    function env($key, $default = '')
     {
         return Env::getInstance()->get($key, $default);
     }

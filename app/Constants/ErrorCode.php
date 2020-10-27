@@ -6,7 +6,7 @@
  * and open the template in the editor.
  */
 
-namespace Spool\Pedis\App\Constants;
+namespace App\Constants;
 
 /**
  * Pedis报错信息,1000+启动错误
@@ -49,7 +49,11 @@ class ErrorCode extends AbstractConstants
     /**
      * @Message('pid文件已经存在')
      */
-    const PID_FILE_IS_EXISTS = 1001;
+    const PID_FILE_IS_EXISTS = 1301;
+    /**
+     * @Message('pid文件目录不可写')
+     */
+    const PID_DIR_CAN_NOT_WRITE = 1302;
     /**
      * @Message('fork子进程失败')
      */

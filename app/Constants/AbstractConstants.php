@@ -6,9 +6,10 @@
  * and open the template in the editor.
  */
 
-namespace Spool\Pedis\Constants;
+namespace App\Constants;
 
-use Spool\Pedis\Exception\PedisException;
+use Spool\Exception\SpoolException;
+
 /**
  * @method static getMessage(int $errorCode)
  *
@@ -19,11 +20,11 @@ abstract class AbstractConstants
     public static function __callStatic(string $name, array $arguments)
     {
         if (!self::startsWith($name, 'get')) {
-            throw new ConstantsException('The function is not defined!');
+            throw new SpoolException('The function is not defined!');
         }
 
         if (!isset($arguments) || count($arguments) === 0) {
-            throw new ConstantsException('The Code is required');
+            throw new SpoolException('The Code is required');
         }
         $code = $arguments[0];
         $class = get_called_class();
@@ -31,7 +32,7 @@ abstract class AbstractConstants
         $message = self::getValue($class, $code);
         return $message;
     }
-    
+
     /**
      * Determine if a given string starts with a given substring.
      *
@@ -46,7 +47,7 @@ abstract class AbstractConstants
         }
         return false;
     }
-    
+
     private static function getValue($class, $code): string
     {
         $re = new \ReflectionClass(new $class);
@@ -66,7 +67,7 @@ abstract class AbstractConstants
         }
         return self::$method($str);
     }
-    
+
     private static function Message(string $msg): string
     {
         $tmp = str_replace(__FUNCTION__, '', trim($msg));

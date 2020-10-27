@@ -14,8 +14,10 @@ declare(strict_types=1);
  * @DateTime 2020-10-21
  */
 
-use Spool\Pedis\Server;
+use Spool\Pedis\Pedis;
 
-$app = new Server(dirname(__DIR__));
-
+defined('APP_ROOT') || define('APP_ROOT', dirname(__DIR__));
+$timezone = config('TIMEZONE', 'Asia/Shanghai');
+ini_set('date.timezone', $timezone);
+$app = new Pedis(dirname(__DIR__));
 return $app;

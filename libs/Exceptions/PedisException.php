@@ -11,6 +11,7 @@ namespace Spool\Pedis\Exceptions;
 use Exception;
 use Spool\Pedis\Constants\ErrorCode;
 use Spool\Pedis\Lib\Log;
+
 /**
  * Description of PedisException
  *
@@ -25,16 +26,16 @@ class PedisException extends Exception
             if (!$code || $code < 0) {
                 $code = is_numeric($exception->getMessage()) ? $exception->getMessage() : 0;
             }
-	    Log::error(ErrorCode::getMessage($code));
+            Log::error(ErrorCode::getMessage($code));
             return ['code' => $code, 'msg' => ErrorCode::getMessage($code)];
         } else {
-//            throw $exception;
-	    Log::info($exception->getMessage());
-	    return ['code' => $exception->getCode(), 'msg' => $exception->getMessage()];
+            //            throw $exception;
+            Log::info($exception->getMessage());
+            return ['code' => $exception->getCode(), 'msg' => $exception->getMessage()];
         }
     }
     public function test(\Exception $exc)
     {
-	Log::error($exc->getMessage());
+        Log::error($exc->getMessage());
     }
 }

@@ -55,7 +55,7 @@ class Manager
         }
         Log::debug("当前进程的pid是: {$this->pid}");
         $master = new Master();
-        $this->masterPid = $fork->process([$master, 'run'], true);
+        $this->masterPid = $fork->process([$master, 'run']);
         // while (true) {
         $pidInfo = pcntl_wait($status, WNOHANG);
         Log::debug("Manager pid: {$this->pid}, isSuccess: {" . pcntl_wifexited($status) . "} pidInfo: {$pidInfo}");

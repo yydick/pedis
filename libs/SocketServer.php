@@ -71,9 +71,9 @@ class SocketServer extends Socket
     /**
      * 与主进程通讯用的IPC通道
      *
-     * @var array
+     * @var mixed
      */
-    public $fd = [];
+    public $fd = null;
     /**
      * 启动服务
      * 
@@ -161,7 +161,8 @@ class SocketServer extends Socket
             $write = $this->clients;
             // get a list of all the clients that have data to be read from
             // if there are no clients with data, go to next iteration
-            if (socket_select($read, $write, $except, 0) < 1) {
+            // 超时1秒,避免CPU跑满
+            if (socket_select($read, $write, $except, 1) < 1) {
                 continue;
             }
 

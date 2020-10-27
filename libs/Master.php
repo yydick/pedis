@@ -37,19 +37,16 @@ use Spool\Pedis\SocketServer;
 class Master
 {
     protected $pid = 0;
-    protected $db;
-    protected $io;
-    protected $completion;
-    protected $ioFd = [];
-    protected $completionFd = [];
+    protected $dbPid;
+    protected $ioPid;
+    protected $completionPid;
+    protected $fd = [];
     /**
      * 主进程启动入口
      * 
-     * @param bool $daemonize 是否有守护进程存在
-     * 
      * @return void
      */
-    public function run(bool $daemonize = false): void
+    public function run(): void
     {
         $pid = posix_getpid();
         $this->pid = $pid;
@@ -63,6 +60,7 @@ class Master
      */
     public function start(): void
     {
+        $fork = Fork::getInstance();
         $sockets = array();
         /* On Windows we need to use AF_INET */
         $domain = (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN' ? AF_INET : AF_UNIX);
@@ -71,10 +69,11 @@ class Master
         if (socket_create_pair($domain, SOCK_STREAM, 0, $sockets) === false) {
             echo "socket_create_pair failed. Reason: " . socket_strerror(socket_last_error());
         }
-        $this->ioFd['read'] = $sockets[0];
-        $this->ioFd['write'] = $sockets[1];
-        $this->io = new SocketServer();
-        $this->io->start();
+        $ioServer = new SocketServer();
+        $ioServer->fd = $sockets[0];
+        socket_close($sockets[0]);
+        $this->fd['id'] = $sockets[1];
+        $this->ioPid = $fork->process([$ioServer, 'start']);
     }
     /**
      * @return void

@@ -74,31 +74,40 @@ abstract class Socket
      *
      * @var integer
      */
-    public $connectionTime = 0;
+    protected $connectionTime = 0;
     /**
-     * 心跳时长, 0不发送心跳包
+     * 心跳时长，纳秒, 0不发送心跳包
      *
-     * @var integer
+     * @var float
      */
-    public $heartbeat = 0;
+    protected $heartbeat = 100.101;
     /**
      * 上一次发送心跳时间
      *
-     * @var integer
+     * @var float
      */
-    public $lastHeartbeat = 0;
+    protected $lastHeartbeat = 0.0;
     /**
      * 最后一次发送时间
      *
-     * @var integer
+     * @var float
      */
-    public $lastSend = 0;
+    protected $lastSend = 0.0;
     /**
      * 发送失败次数
      *
      * @var integer
      */
-    public $sendFailed = 0;
+    protected $sendFailed = 0;
+    /**
+     * 要监听的信号列表
+     *
+     * @var array
+     */
+    protected $signals = [
+        SIGHUP, SIGINT, SIGQUIT, SIGTRAP, SIGABRT, SIGUSR1,
+        SIGUSR2, SIGALRM, SIGTERM
+    ];
     /**
      * 构建方法
      */
@@ -115,6 +124,47 @@ abstract class Socket
     public function getIsConnection(): bool
     {
         return $this->isConnection;
+    }
+    /**
+     * 判断是否需要usleep,避免CPU占用过高
+     * 
+     * @param float   $startTime 工作开始的时间
+     * @param integer $usleep    需要睡眠的时间, 默认10000 0.01m
+     * 
+     * @return void
+     */
+    protected function workUsleep(float $startTime, int $usleep = 10000): void
+    {
+        $workEndTimer = microtime(true) * 10000 - $startTime * 10000;
+        if ($workEndTimer < $usleep) {
+            //为了避免有连接时的CPU跑满,还是得usleep
+            usleep($usleep - $workEndTimer);
+        }
+    }
+    /**
+     * 信号处理
+     * 
+     * @param integer $signo 要处理的信号
+     * 
+     * @return void
+     */
+    protected function sigHandler(int $signo): void
+    {
+        switch ($signo) {
+            case SIGTERM:
+            case SIGTRAP:
+            case SIGKILL:
+                exit;
+                break;
+            case SIGUSR1:
+                Log::info("Get SIGUSR1!");
+                break;
+            case SIGALRM:
+                Log::info("Get SIGALRM!");
+                break;
+            default:
+                break;
+        }
     }
     /**
      * 获取自定义命名的名称
@@ -204,5 +254,65 @@ abstract class Socket
     public function reset(): bool
     {
         return $this->socket == null ? false : $this->socket = null;
+    }
+    /**
+     * 获取 连接建立的时间
+     * 
+     * @return integer
+     */
+    public function getConnectionTime(): int
+    {
+        return $this->connectionTime;
+    }
+
+    /**
+     * 获取 心跳时长
+     * 
+     * @return float
+     */
+    public function getHeartbeat(): float
+    {
+        return $this->heartbeat;
+    }
+    /**
+     * 设置 心跳时长
+     *
+     * @param float $heartbeat 要设置的心跳时长
+     * 
+     * @return void
+     */
+    public function setHeartbeat(float $heartbeat): void
+    {
+        $this->heartbeat = $heartbeat;
+    }
+
+    /**
+     * 获取 上一次发送心跳时间
+     * 
+     * @return float
+     */
+    public function getLastHeartbeat(): float
+    {
+        return $this->lastHeartbeat;
+    }
+
+    /**
+     * 获取 最后一次发送时间
+     * 
+     * @return float
+     */
+    public function getLastSend(): float
+    {
+        return $this->lastSend;
+    }
+
+    /**
+     * 获取 发送失败次数
+     * 
+     * @return integer
+     */
+    public function getSendFailed(): int
+    {
+        return $this->sendFailed;
     }
 }

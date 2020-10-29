@@ -56,9 +56,13 @@ class Manager
         Log::debug("当前进程的pid是: {$this->pid}");
         $master = new Master();
         $this->masterPid = $fork->process([$master, 'run']);
+        /**
+         * 这里需要加master进程终止后，拉起的逻辑和进程终止的逻辑
+         */
         // while (true) {
         $pidInfo = pcntl_wait($status, WNOHANG);
         Log::debug("Manager pid: {$this->pid}, isSuccess: {" . pcntl_wifexited($status) . "} pidInfo: {$pidInfo}");
         // }
+        if ($pidFile) unlink($pidFile);
     }
 }

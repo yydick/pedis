@@ -19,6 +19,7 @@ namespace Spool\Pedis;
 
 use Spool\Pedis\Socket;
 use Spool\PeasLog\Log;
+use Spool\Pedis\Lib\bak\Log as BakLog;
 
 /**
  * 网络服务
@@ -86,12 +87,18 @@ class SocketServer extends Socket
     {
         $this->listen($host, $port);
         Log::debug("Socket server is listening {$host}:{$port}!");
+        /**
+         * 注册shutdown函数
+         */
+        register_shutdown_function([$this, 'stop']);
+        /**
+         * 注册信号处理器
+         */
+        // foreach ($this->signals as $value) {
+        //     pcntl_signal($value, [$this, 'sigHandler']);
+        // }
         $this->beginning();
         Log::warning("Socket server is shutdown!");
-        /**
-         * 工作结束需要用exit结束当前进程,避免继续执行后面父进程的代码
-         */
-        exit(0);
     }
     /**
      * 停止IO循环
@@ -100,7 +107,21 @@ class SocketServer extends Socket
      */
     public function stop(): void
     {
-        $this->stopped = true;
+        Log::debug("stop is calling!");
+        if (!$this->stopped) {
+            /**
+             * 停止while循环
+             */
+            $this->stopped = true;
+            @socket_write($this->fd, "shutdown");
+            // socket_close($this->fd);
+            /**
+             * 关闭所有socket
+             */
+            foreach ($this->clients as $value) {
+                socket_close($value);
+            }
+        }
     }
     /**
      * 获取Master进程返回的数据
@@ -143,7 +164,10 @@ class SocketServer extends Socket
             Log::error("Socket listen is failed for {$host}:{$port}");
             throw new \Error($errorMsg, $errorNo);
         }
+        socket_set_option($this->socket, SOL_SOCKET, SO_REUSEADDR, 1); //重用端口
+        socket_set_nonblock($this->socket); //非阻塞
         $this->clients['root'] = $this->socket;
+        $this->clients['master'] = $this->fd;
     }
     /**
      * 开始工作
@@ -155,16 +179,33 @@ class SocketServer extends Socket
         $read = $write = $except = null;
         $bufferSize = config('pedis.NETWORK.bufferSize', 1024 * 1024 * 64);
         Log::info("Socket read buffer size: {$bufferSize}!");
+        $heartbeat = explode('.', $this->heartbeat);
+        $tvSec = is_array($heartbeat) ? intval($heartbeat[0]) : intval($heartbeat);
+        $tvUsec = is_array($heartbeat) && isset($heartbeat[1]) ? intval($heartbeat[1]) : 0;
+        if ($tvSec <= 0) {
+            // 超时1秒,避免CPU跑满
+            $tvSec = 1;
+        }
+        if ($tvUsec < 0) {
+            $tvUsec = 0;
+        }
         while (!$this->stopped) {
             // create a copy, so $clients doesn't get modified by socket_select()
             $read = $this->clients;
             $write = $this->clients;
             // get a list of all the clients that have data to be read from
             // if there are no clients with data, go to next iteration
-            // 超时1秒,避免CPU跑满
-            if (socket_select($read, $write, $except, 1) < 1) {
+            if (socket_select($read, $write, $except, $tvSec, $tvUsec) < 1) {
+                /**
+                 * 发送心跳
+                 */
+                // if ($this->fd) socket_write($this->fd, chr(7));
                 continue;
             }
+            /**
+             * 有连接时记录开始时间, 避免循环过快导致CPU跑满了
+             */
+            $workStartTimer = microtime(true);
 
             // check if there is a client trying to connect
             if (in_array($this->socket, $read)) {
@@ -176,19 +217,16 @@ class SocketServer extends Socket
                 $msg = "New client connected: {$ip}:{$port}\n";
                 socket_write($newsock, $msg);
                 Log::debug($msg);
-
                 // remove the listening socket from the clients-with-data array
                 $key = array_search($this->socket, $read);
                 unset($read[$key]);
             }
 
-            // var_dump('read: ', $read, 'write: ', $write);
             // loop through all the clients that have data to read from
             foreach ($read as $key => $readSock) {
                 // read until newline or bufferSize bytes
                 // socket_read while show errors when the client is disconnected, so silence the error messages
-                $data = socket_read($readSock, $bufferSize, PHP_NORMAL_READ);
-
+                $data = socket_read($readSock, $bufferSize, PHP_BINARY_READ);
                 // check if the client is disconnected
                 if ($data === false) {
                     // remove client for $clients array
@@ -201,9 +239,18 @@ class SocketServer extends Socket
 
                 // trim off the trailing/beginning white spaces
                 $data = trim($data);
+                if ($data == 'shutdown' && $key == 'master') {
+                    Log::alert("Master is down! Io process be about to stop!");
+                    $this->stop();
+                    break 2;
+                }
 
                 // check if there is any data after trimming off the spaces
                 if (!empty($data)) {
+                    if ($key == 'master') {
+                        Log::debug("Get data from master: {$data}");
+                        continue;
+                    }
                     if ($data == 'quit') {
                         socket_close($readSock);
                         // $key = array_search($readSock, $this->clients);
@@ -212,7 +259,8 @@ class SocketServer extends Socket
                         continue;
                     }
                     if ($data == 'shutdown') {
-                        break 2;
+                        $this->stop();
+                        break;
                     }
                     // send this to all the clients in the $clients array (except the first one, which is a listening socket)
                     foreach ($this->clients as $sendSock) {
@@ -224,9 +272,11 @@ class SocketServer extends Socket
                         // write the message to the client -- add a newline character to the end of the message
                         socket_write($sendSock, "{$key} send: {$data}" . "\n");
                     } // end of broadcast foreach
-
+                    socket_write($this->fd, $data);
                 }
             } // end of reading foreach
+            //判断是否需要usleep
+            $this->workUsleep($workStartTimer);
         }
     }
 }

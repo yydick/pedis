@@ -77,7 +77,7 @@ class CheckEvent
         $pidFile = $fileInfo['dirname'] . DIRECTORY_SEPARATOR . $fileInfo['basename'];
         static::$data['pidFile'] = $pidFile;
         if (file_exists($pidFile)) {
-            Log::error("pid file is exists!");
+            Log::error("pid file {$pidFile} is exists!");
             return false;
         }
         return true;

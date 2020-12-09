@@ -89,27 +89,7 @@ class Master extends Socket
      */
     public function start(): void
     {
-        $fork = Fork::getInstance();
-        $sockets = array();
-        /* On Windows we need to use AF_INET */
-        $domain = (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN' ? AF_INET : AF_UNIX);
-        $heartbeat = config('pedis.NETWORK.heartbeat', 1.0);
-        $this->setHeartbeat($heartbeat);
-        /* Setup socket pair */
-        if (socket_create_pair($domain, SOCK_STREAM, 0, $sockets) === false) {
-            echo "socket_create_pair failed. Reason: " . socket_strerror(socket_last_error());
-            $this->stop();
-        }
-        socket_set_option($sockets[0], SOL_SOCKET, SO_REUSEADDR, 1); //重用端口
-        socket_set_option($sockets[1], SOL_SOCKET, SO_REUSEADDR, 1); //重用端口
-        socket_set_nonblock($sockets[0]); //非阻塞
-        socket_set_nonblock($sockets[1]); //非阻塞
-        $ioServer = new SocketServer();
-        $ioServer->setHeartbeat($heartbeat);
-        $ioServer->fd = $sockets[0];
-        $this->pids['io'] = $fork->process([$ioServer, 'start']);
-        socket_close($sockets[0]);
-        $this->fd['io'] = $sockets[1];
+        $this->createIOServer();
         /**
          * 注册shutdown函数
          */
@@ -192,25 +172,10 @@ class Master extends Socket
                     }
                     unset($this->clients[$key]);
                     Log::debug("{$key} client disconnected. need restart it!\n");
-                    $sockets = array();
-                    /* On Windows we need to use AF_INET */
-                    $domain = (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN' ? AF_INET : AF_UNIX);
-                    /* Setup socket pair */
-                    if (socket_create_pair($domain, SOCK_STREAM, 0, $sockets) === false) {
-                        echo "socket_create_pair failed. Reason: " . socket_strerror(socket_last_error());
-                        $this->stop();
-                    }
-                    socket_set_option($sockets[0], SOL_SOCKET, SO_REUSEADDR, 1); //重用端口
-                    socket_set_option($sockets[1], SOL_SOCKET, SO_REUSEADDR, 1); //重用端口
-                    socket_set_nonblock($sockets[0]); //非阻塞
-                    socket_set_nonblock($sockets[1]); //非阻塞
-                    $ioServer = new SocketServer();
-                    $ioServer->setHeartbeat(implode('.', $heartbeat));
-                    $ioServer->fd = $sockets[0];
-                    $fork = Fork::getInstance();
-                    $this->pids['io'] = $fork->process([$ioServer, 'start']);
-                    socket_close($sockets[0]);
-                    $this->fd['io'] = $sockets[1];
+                    /**
+                     * 重新创建IO服务
+                     */
+                    $this->createIOServer();
                     // exit;
                     // continue to the next client to read from, if any
                     continue;
@@ -277,5 +242,34 @@ class Master extends Socket
             default:
                 break;
         }
+    }
+    /**
+     * 创建IO进程
+     * 
+     * @return void
+     */
+    protected function createIOServer(): void
+    {
+        $heartbeat = explode('.', $this->heartbeat);
+        $sockets = array();
+        /* On Windows we need to use AF_INET */
+        $domain = (strtoupper(substr(PHP_OS, 0, 3)) == 'WIN' ? AF_INET : AF_UNIX);
+        /* Setup socket pair */
+        if (socket_create_pair($domain, SOCK_STREAM, 0, $sockets) === false) {
+            echo "socket_create_pair failed. Reason: " . socket_strerror(socket_last_error());
+            $this->stop();
+        }
+        socket_set_option($sockets[0], SOL_SOCKET, SO_REUSEADDR, 1); //重用端口
+        socket_set_option($sockets[1], SOL_SOCKET, SO_REUSEADDR, 1); //重用端口
+        socket_set_nonblock($sockets[0]); //非阻塞
+        socket_set_nonblock($sockets[1]); //非阻塞
+        $ioServer = new SocketServer();
+        $ioServer->setHeartbeat(implode('.', $heartbeat));
+        $ioServer->setName('io');
+        $ioServer->fd = $sockets[0];
+        $fork = Fork::getInstance();
+        $this->pids['io'] = $fork->process([$ioServer, 'start']);
+        socket_close($sockets[0]);
+        $this->fd['io'] = $sockets[1];
     }
 }

@@ -3,7 +3,7 @@
 /**
  * 网络服务
  * 
- * Class Socket 网络服务
+ * Class IoServer 网络服务
  * 
  * PHP version 7.2
  * 
@@ -19,12 +19,11 @@ namespace Spool\Pedis;
 
 use Spool\Pedis\Socket;
 use Spool\PeasLog\Log;
-use Spool\Pedis\Lib\bak\Log as BakLog;
 
 /**
  * 网络服务
  * 
- * Class Socket 网络服务
+ * Class IoServer 网络服务
  * 
  * PHP version 7.2
  * 
@@ -35,7 +34,7 @@ use Spool\Pedis\Lib\bak\Log as BakLog;
  * @link     http://url.com
  * @DateTime 2020-10-27
  */
-class SocketServer extends Socket
+class IoServer extends Socket
 {
     const WORK_TYPE = 'server';
     const CONN_TYPE = 'tcp';
@@ -86,7 +85,8 @@ class SocketServer extends Socket
     public function start(string $host = 'localhost', int $port = 9736): void
     {
         $this->listen($host, $port);
-        Log::debug("Socket server is listening {$host}:{$port}!");
+        $this->name = 'io';
+        Log::info("Socket server is listening {$host}:{$port}!");
         /**
          * 注册shutdown函数
          */
@@ -98,7 +98,7 @@ class SocketServer extends Socket
         //     pcntl_signal($value, [$this, 'sigHandler']);
         // }
         $this->beginning();
-        Log::warning("Socket server is shutdown!");
+        Log::info("Socket server is shutdown!");
     }
     /**
      * 停止IO循环
@@ -126,9 +126,11 @@ class SocketServer extends Socket
     /**
      * 获取Master进程返回的数据
      * 
+     * @param string $recv 接收到的数据
+     * 
      * @return void
      */
-    public function getRecv(): void
+    public function getRecv(string $recv): void
     {
     }
     /**
@@ -270,7 +272,7 @@ class SocketServer extends Socket
                             continue;
 
                         // write the message to the client -- add a newline character to the end of the message
-                        socket_write($sendSock, "{$key} send: {$data}" . "\n");
+                        socket_write($sendSock, json_encode(['client' => $key, 'data' => $data]));
                     } // end of broadcast foreach
                     socket_write($this->fd, $data);
                 }

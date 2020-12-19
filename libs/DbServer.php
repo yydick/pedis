@@ -62,7 +62,7 @@ class DbServer extends Socket
      */
     public function start(string $dbFile = 'prdb'): void
     {
-        $this->name = 'db';
+        $this->name = 'dbServer';
         Log::info("Database server is started!");
         /**
          * 注册shutdown函数

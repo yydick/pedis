@@ -18,7 +18,7 @@
 namespace Spool\Pedis;
 
 use Spool\PeasLog\Log;
-use Spool\Pedis\SocketServer;
+use Spool\Pedis\IoServer;
 
 /**
  * 主进程
@@ -263,7 +263,7 @@ class Master extends Socket
         socket_set_option($sockets[1], SOL_SOCKET, SO_REUSEADDR, 1); //重用端口
         socket_set_nonblock($sockets[0]); //非阻塞
         socket_set_nonblock($sockets[1]); //非阻塞
-        $ioServer = new SocketServer();
+        $ioServer = new IoServer();
         $ioServer->setHeartbeat(implode('.', $heartbeat));
         $ioServer->setName('io');
         $ioServer->fd = $sockets[0];
